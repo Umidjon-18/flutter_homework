@@ -9,8 +9,8 @@ class AnimationFirst extends StatefulWidget {
 
 class _AnimationFirstState extends State<AnimationFirst>
     with TickerProviderStateMixin {
-   late AnimationController _controller;
-   Animation? _animation;
+  late AnimationController _controller;
+  Animation? _animation;
 
   @override
   void initState() {
@@ -19,8 +19,7 @@ class _AnimationFirstState extends State<AnimationFirst>
       vsync: this,
       duration: const Duration(milliseconds: 1600),
     );
-    _animation =
-        CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
   }
 
   @override

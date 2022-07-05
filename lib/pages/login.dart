@@ -166,7 +166,10 @@ class _LoginState extends State<Login> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(onPressed: (){}, child: Icon(Icons.add_a_photo),),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        child: Icon(Icons.add_a_photo),
+      ),
     );
   }
 }

@@ -41,7 +41,6 @@ class _HomeworkState extends State<Homework> {
               ),
             ],
           ),
-
           const VerticalDivider(
             thickness: 1,
             width: 1,

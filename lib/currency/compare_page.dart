@@ -18,7 +18,8 @@ class ComparePage extends StatefulWidget {
 
 class _ComparePageState extends State<ComparePage> {
   final TextEditingController _editingControllerTop = TextEditingController();
-  final TextEditingController _editingControllerBottom = TextEditingController();
+  final TextEditingController _editingControllerBottom =
+      TextEditingController();
   final FocusNode _topFocus = FocusNode();
   final FocusNode _bottomFocus = FocusNode();
   final List<CurrencyModel> _listCurrency = [];
@@ -69,7 +70,8 @@ class _ComparePageState extends State<ComparePage> {
 
   Future<bool?> _loadData() async {
     try {
-      var response = await get(Uri.parse('https://cbu.uz/uz/arkhiv-kursov-valyut/json/'));
+      var response =
+          await get(Uri.parse('https://cbu.uz/uz/arkhiv-kursov-valyut/json/'));
       if (response.statusCode == 200) {
         for (final item in jsonDecode(response.body)) {
           var model = CurrencyModel.fromJson(item);
@@ -123,7 +125,8 @@ class _ComparePageState extends State<ComparePage> {
                       children: [
                         TextSpan(
                           text: 'Welcome',
-                          style: kTextStyle(size: 20, fontWeight: FontWeight.bold),
+                          style:
+                              kTextStyle(size: 20, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -167,7 +170,8 @@ class _ComparePageState extends State<ComparePage> {
                               children: [
                                 Text(
                                   'Exchange',
-                                  style: kTextStyle(size: 16, fontWeight: FontWeight.w600),
+                                  style: kTextStyle(
+                                      size: 16, fontWeight: FontWeight.w600),
                                 ),
                                 IconButton(
                                   onPressed: () {},
@@ -185,11 +189,25 @@ class _ComparePageState extends State<ComparePage> {
                               children: [
                                 Column(
                                   children: [
-                                    _itemExch(_editingControllerTop, topCur, _topFocus),
+                                    _itemExch(_editingControllerTop, topCur,
+                                        _topFocus, ((value) {
+                                      if (value is CurrencyModel) {
+                                        setState(() {
+                                          topCur = value;
+                                        });
+                                      }
+                                    })),
                                     const SizedBox(
                                       height: 15,
                                     ),
-                                    _itemExch(_editingControllerBottom, bottomCur, _bottomFocus),
+                                    _itemExch(_editingControllerBottom,
+                                        bottomCur, _bottomFocus, ((value) {
+                                      if (value is CurrencyModel) {
+                                        setState(() {
+                                          bottomCur = value;
+                                        });
+                                      }
+                                    })),
                                   ],
                                 ),
                                 InkWell(
@@ -236,7 +254,7 @@ class _ComparePageState extends State<ComparePage> {
                       return const Expanded(
                         child: Center(
                           child: CircularProgressIndicator(
-                            color: Colors.white,
+                            color: Color(0xff1f2235),
                           ),
                         ),
                       );
@@ -249,11 +267,14 @@ class _ComparePageState extends State<ComparePage> {
     );
   }
 
-  Widget _itemExch(TextEditingController controller, CurrencyModel? model, FocusNode focusNode) {
+  Widget _itemExch(TextEditingController controller, CurrencyModel? model,
+      FocusNode focusNode, Function callback) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(border: Border.all(color: Colors.white12), borderRadius: BorderRadius.circular(15)),
+      decoration: BoxDecoration(
+          border: Border.all(color: Colors.white12),
+          borderRadius: BorderRadius.circular(15)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -270,15 +291,26 @@ class _ComparePageState extends State<ComparePage> {
                     border: InputBorder.none,
                     isDense: true,
                     hintText: '0.00',
-                    hintStyle: kTextStyle(size: 24, fontWeight: FontWeight.bold),
+                    hintStyle:
+                        kTextStyle(size: 24, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
               GestureDetector(
-                onTap: () => Navigator.pushNamed(context, Routes.currencyPage),
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  Routes.currencyPage,
+                  arguments: {
+                    'list_currency': _listCurrency,
+                    'top_cur': topCur?.ccy,
+                    'bottom_cur': bottomCur?.ccy
+                  },
+                ).then(((value) => callback(value))),
                 child: Container(
                   padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: const Color(0xff10a4d4)),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      color: const Color(0xff10a4d4)),
                   child: Row(children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
@@ -292,7 +324,8 @@ class _ComparePageState extends State<ComparePage> {
                       padding: const EdgeInsets.only(left: 5, right: 10),
                       child: Text(
                         model?.ccy ?? 'UNK',
-                        style: kTextStyle(size: 16, fontWeight: FontWeight.w600),
+                        style:
+                            kTextStyle(size: 16, fontWeight: FontWeight.w600),
                       ),
                     ),
                     const Icon(
@@ -306,8 +339,12 @@ class _ComparePageState extends State<ComparePage> {
             ],
           ),
           Text(
-            controller.text.isNotEmpty ? (double.parse(controller.text) * 0.05).toStringAsFixed(2) : '0.00',
-            style: kTextStyle(fontWeight: FontWeight.w600, color: Colors.white54),
+            controller.text.isNotEmpty
+                ? (double.parse(controller.text) * 0.05).toStringAsFixed(2)
+                : '0.00',
+            style: kTextStyle(
+                fontWeight: FontWeight.w600,
+                color: const Color.fromARGB(255, 237, 116, 107)),
           )
         ],
       ),
