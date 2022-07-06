@@ -2,7 +2,7 @@
     package="com.example.flutter_homework">
     <uses-permission android:name="android.permission.INTERNET"/>
    <application
-        android:label="Weather"
+        android:label="Ob-Havo"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher_round">
         <activity

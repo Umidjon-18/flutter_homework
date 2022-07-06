@@ -14,13 +14,13 @@ class WeatherPage extends StatefulWidget {
 }
 
 class _WeatherPageState extends State<WeatherPage> with HiveUtil {
-  WeatherModel data = WeatherModel();
+  WeatherModel? data;
 
   Future<WeatherModel?> loadData(String city) async {
     data = WeatherModel();
-    // var isLoad = await loadLocalData();
+    var isLoad = await loadLocalData();
 
-    // if (isLoad) {
+    if (!isLoad) {
       try {
         var response = await get(Uri.parse('https://obhavo.uz/$city'));
         if (response.statusCode == 200) {
@@ -82,7 +82,7 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
               rainPerc: rainPercs);
 
           data = weatherModel;
-          await saveBox<WeatherModel?>('weatherBox', data);
+          await saveBox<WeatherModel?>('weatherBox', data, key: requestName);
           return data;
         } else {
           return data;
@@ -90,9 +90,9 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
       } catch (e) {
         return data;
       }
-    // } else {
-    //   return null;
-    // }
+    } else {
+      return null;
+    }
   }
 
   var dItems = [
@@ -195,7 +195,7 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
 
   Future<bool> loadLocalData() async {
     try {
-      var model = await getBox<WeatherModel?>('weatherBox');
+      var model = await getBox<WeatherModel?>('weatherBox', key: requestName);
       if (model!.date ==
           "${DateTime.now().day}.${DateTime.now().month}.${DateTime.now().year}") {
         data = model;
@@ -207,18 +207,33 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
     }
   }
 
+  _showMessage(String text, {bool isError = true}) {
+    Future.delayed(
+        Duration.zero,
+        () => ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: isError ? Colors.red : Colors.green[400],
+                content: Text(
+                  text,
+                  style: kTextStyle(size: 15, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: customAppBar(),
       body: FutureBuilder(
-        future: loadData(requestName),
+        future: data == null ? loadData(requestName) : null,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: Image(image: AssetImage('assets/images/ic_waiting2.gif')),
             );
-          } else if (snapshot.connectionState == ConnectionState.done) {
+          } else if (snapshot.connectionState == ConnectionState.done &&
+              data?.date != null) {
             /////////////
             return ListView(
               children: [
@@ -260,7 +275,9 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
               ],
             );
           } else {
-            return const Center(child: Text('error'));
+            return Center(
+              child: _showMessage('Internet Connection failed'),
+            );
           }
         },
       ),
@@ -340,7 +357,7 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
                               dropdownValue = newValue ?? "fergana";
                               requestName = dropdownValue.toLowerCase();
                               check(0);
-                              data = WeatherModel();
+                              data = null;
                             });
                           },
                         ),
@@ -419,7 +436,7 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
                 top: 7,
               ),
               child: Image(
-                image: _weatherIcon(data.today?[3].toString().toLowerCase()),
+                image: _weatherIcon(data?.today?[3].toString().toLowerCase()),
                 width: 160,
                 height: 160,
               ),
@@ -434,11 +451,11 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
               ),
               child: RichText(
                 text: TextSpan(
-                  text: '${data.today?[0].toString().substring(0, 5)}\n',
+                  text: '${data?.today?[0].toString().substring(0, 5)}\n',
                   style: kTextStyle(size: 16, fontWeight: FontWeight.w500),
                   children: [
                     TextSpan(
-                      text: ' ${data.today?[0].toString().substring(6)}',
+                      text: ' ${data?.today?[0].toString().substring(6)}',
                       style: kTextStyle(size: 16, fontWeight: FontWeight.w500),
                     ),
                   ],
@@ -456,11 +473,11 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
               child: Column(
                 children: [
                   Text(
-                    '${data.today?[1]}',
+                    '${data?.today?[1]}',
                     style: kTextStyle(size: 60, fontWeight: FontWeight.w700),
                   ),
                   Text(
-                    'Oqshom ${data.today?[2]}',
+                    'Oqshom ${data?.today?[2]}',
                     style: kTextStyle(size: 15, fontWeight: FontWeight.w500),
                   ),
                 ],
@@ -475,7 +492,7 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
                 bottom: 23,
               ),
               child: Text(
-                '${data.today?[3]}',
+                '${data?.today?[3]}',
                 style: kTextStyle(size: 26, fontWeight: FontWeight.w600),
               ),
             ),
@@ -543,10 +560,10 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
                   _itemInfo(
                       'assets/weather_icons/ic_pressure.png',
                       'Havo bosimi',
-                      '${data.today?[6].toString().substring(7, 10)}mm.s.us'),
+                      '${data?.today?[6].toString().substring(7, 10)}mm.s.us'),
                   const SizedBox(height: 20),
                   _itemInfo('assets/weather_icons/ic_rain_perc.png', 'Namlik',
-                      '${data.today?[4].toString().substring(8)}'),
+                      '${data?.today?[4].toString().substring(8)}'),
                 ],
               ),
               Column(
@@ -555,10 +572,10 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
                   _itemInfo(
                       'assets/weather_icons/ic_wind.png',
                       'Shamol tezligi',
-                      '${data.today?[5].toString().split(",")[1].trim()}'),
+                      '${data?.today?[5].toString().split(",")[1].trim()}'),
                   const SizedBox(height: 20),
                   _itemInfo('assets/weather_icons/ic_moon.png', "Oy ko'rinishi",
-                      '${data.today?[7].toString().substring(4)}'),
+                      '${data?.today?[7].toString().substring(4)}'),
                 ],
               ),
               Column(
@@ -567,12 +584,12 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
                   _itemInfo(
                       'assets/weather_icons/ic_sun_up.png',
                       'Quyosh chiqishi',
-                      '${data.today?[8].toString().substring(17)}'),
+                      '${data?.today?[8].toString().substring(17)}'),
                   const SizedBox(height: 20),
                   _itemInfo(
                       'assets/weather_icons/ic_sun_down.png',
                       'Quyosh botishi',
-                      '${data.today?[9].toString().substring(16)}'),
+                      '${data?.today?[9].toString().substring(16)}'),
                 ],
               ),
             ],
@@ -596,11 +613,11 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
               });
             },
             child: _itemWeek(
-                '${data.weekDays?[0]}',
-                '${data.days?[0]}',
-                '${data.feeling?[0]}',
-                '${data.tempDay?[0]}',
-                '${data.rainPerc?[0]}',
+                '${data?.weekDays?[0]}',
+                '${data?.days?[0]}',
+                '${data?.feeling?[0]}',
+                '${data?.tempDay?[0]}',
+                '${data?.rainPerc?[0]}',
                 zero),
           ),
           InkWell(
@@ -610,11 +627,11 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
               });
             },
             child: _itemWeek(
-                '${data.weekDays?[1]}',
-                '${data.days?[1]}',
-                '${data.feeling?[1]}',
-                '${data.tempDay?[1]}',
-                '${data.rainPerc?[1]}',
+                '${data?.weekDays?[1]}',
+                '${data?.days?[1]}',
+                '${data?.feeling?[1]}',
+                '${data?.tempDay?[1]}',
+                '${data?.rainPerc?[1]}',
                 one),
           ),
           InkWell(
@@ -624,11 +641,11 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
               });
             },
             child: _itemWeek(
-                '${data.weekDays?[2]}',
-                '${data.days?[2]}',
-                '${data.feeling?[2]}',
-                '${data.tempDay?[2]}',
-                '${data.rainPerc?[2]}',
+                '${data?.weekDays?[2]}',
+                '${data?.days?[2]}',
+                '${data?.feeling?[2]}',
+                '${data?.tempDay?[2]}',
+                '${data?.rainPerc?[2]}',
                 two),
           ),
           InkWell(
@@ -638,11 +655,11 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
               });
             },
             child: _itemWeek(
-                '${data.weekDays?[3]}',
-                '${data.days?[3]}',
-                '${data.feeling?[3]}',
-                '${data.tempDay?[3]}',
-                '${data.rainPerc?[3]}',
+                '${data?.weekDays?[3]}',
+                '${data?.days?[3]}',
+                '${data?.feeling?[3]}',
+                '${data?.tempDay?[3]}',
+                '${data?.rainPerc?[3]}',
                 three),
           ),
           InkWell(
@@ -652,11 +669,11 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
               });
             },
             child: _itemWeek(
-                '${data.weekDays?[4]}',
-                '${data.days?[4]}',
-                '${data.feeling?[4]}',
-                '${data.tempDay?[4]}',
-                '${data.rainPerc?[4]}',
+                '${data?.weekDays?[4]}',
+                '${data?.days?[4]}',
+                '${data?.feeling?[4]}',
+                '${data?.tempDay?[4]}',
+                '${data?.rainPerc?[4]}',
                 four),
           ),
           InkWell(
@@ -666,11 +683,11 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
               });
             },
             child: _itemWeek(
-                '${data.weekDays?[5]}',
-                '${data.days?[5]}',
-                '${data.feeling?[5]}',
-                '${data.tempDay?[5]}',
-                '${data.rainPerc?[5]}',
+                '${data?.weekDays?[5]}',
+                '${data?.days?[5]}',
+                '${data?.feeling?[5]}',
+                '${data?.tempDay?[5]}',
+                '${data?.rainPerc?[5]}',
                 five),
           ),
           InkWell(
@@ -680,11 +697,11 @@ class _WeatherPageState extends State<WeatherPage> with HiveUtil {
               });
             },
             child: _itemWeek(
-                '${data.weekDays?[6]}',
-                '${data.days?[6]}',
-                '${data.feeling?[6]}',
-                '${data.tempDay?[6]}',
-                '${data.rainPerc?[6]}',
+                '${data?.weekDays?[6]}',
+                '${data?.days?[6]}',
+                '${data?.feeling?[6]}',
+                '${data?.tempDay?[6]}',
+                '${data?.rainPerc?[6]}',
                 six),
           ),
         ],
