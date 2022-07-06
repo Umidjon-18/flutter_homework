@@ -70,6 +70,7 @@ flutter:
     - assets/
     - assets/flags/
     - assets/weather_icons/
+    - assets/images/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

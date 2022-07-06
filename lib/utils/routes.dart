@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_homework/weather/weather_page.dart';
 
 
+
 class Routes {
   static const discoverPage = '/discoverPage';
   static const comparePage = '/';
